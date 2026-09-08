@@ -100,3 +100,53 @@ export const clusterPairs = pgTable('cluster_pairs', {
     .references(() => clusters.id),
   active: boolean('active').notNull().default(true),
 });
+
+export const tripStatusEnum = pgEnum('trip_status', [
+  'REQUESTED',
+  'MATCHED',
+  'CONFIRMED',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'CANCELLED',
+]);
+
+export const tripMemberRoleEnum = pgEnum('trip_member_role', [
+  'driver',
+  'rider',
+]);
+
+export const trips = pgTable('trips', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  tripDate: date('trip_date').notNull(),
+  residentialClusterId: uuid('residential_cluster_id')
+    .notNull()
+    .references(() => clusters.id),
+  workspaceClusterId: uuid('workspace_cluster_id')
+    .notNull()
+    .references(() => clusters.id),
+  officeBuilding: text('office_building').notNull(),
+  driverId: uuid('driver_id')
+    .notNull()
+    .references(() => users.id),
+  entryBucket: text('entry_bucket').notNull(),
+  pickupPointLabel: text('pickup_point_label'),
+  dropPointLabel: text('drop_point_label'),
+  status: tripStatusEnum('status').notNull().default('MATCHED'),
+  costPerHead: numeric('cost_per_head', { precision: 10, scale: 2 }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const tripMembers = pgTable('trip_members', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  tripId: uuid('trip_id')
+    .notNull()
+    .references(() => trips.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  role: tripMemberRoleEnum('role').notNull(),
+  pickupOrder: integer('pickup_order'),
+  confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+});

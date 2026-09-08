@@ -91,9 +91,21 @@ importers:
 
   apps/worker:
     dependencies:
+      '@nexar/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@nexar/matching':
+        specifier: workspace:*
+        version: link:../../packages/matching
       bullmq:
         specifier: ^5.58.5
         version: 5.81.4
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.4.2
+      drizzle-orm:
+        specifier: ^0.44.5
+        version: 0.44.7(postgres@3.4.9)
       ioredis:
         specifier: ^5.7.0
         version: 5.11.1

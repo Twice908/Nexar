@@ -3,13 +3,17 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/worker.ts",
-    "build": "tsup src/worker.ts --format esm --dts",
+    "build": "tsup",
     "lint": "prettier --check src tsconfig.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "@nexar/db": "workspace:*",
+    "@nexar/matching": "workspace:*",
     "bullmq": "^5.58.5",
+    "drizzle-orm": "^0.44.5",
+    "dotenv": "^17.2.2",
     "ioredis": "^5.7.0"
   },
   "devDependencies": {

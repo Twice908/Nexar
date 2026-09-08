@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsup src/server.ts --format esm --dts",
+    "build": "tsup",
     "lint": "prettier --check src tsconfig.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
