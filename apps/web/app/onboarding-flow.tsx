@@ -40,7 +40,7 @@ const dayOptions: [string, string][] = [
 ];
 
 export function OnboardingFlow() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -50,6 +50,10 @@ export function OnboardingFlow() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      return;
+    }
+
     async function loadProfile() {
       try {
         const token = await getToken();
@@ -71,7 +75,7 @@ export function OnboardingFlow() {
     }
 
     void loadProfile();
-  }, [getToken]);
+  }, [getToken, isLoaded, isSignedIn]);
 
   function update<K extends keyof OnboardingForm>(
     key: K,
@@ -164,6 +168,11 @@ export function OnboardingFlow() {
     setError('');
     try {
       const token = await getToken();
+      if (!token) {
+        throw new Error(
+          'Your Clerk session is still loading. Please try again.',
+        );
+      }
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'}/v1/onboarding`,
         {

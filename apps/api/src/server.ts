@@ -1,12 +1,16 @@
-import 'dotenv/config';
-
 import { verifyToken } from '@clerk/backend';
 import cors from '@fastify/cors';
 import { eq } from 'drizzle-orm';
+import { config as loadEnv } from 'dotenv';
 import Fastify, { type FastifyRequest } from 'fastify';
 import { z } from 'zod';
 
 import { clusterPairs, commuteRequests, db, users, vehicles } from '@nexar/db';
+
+// Local keys are usually entered once in the web app environment file.
+loadEnv({ path: '../../apps/web/.env.local' });
+loadEnv({ path: '../../.env.local' });
+loadEnv();
 
 const app = Fastify({ logger: true });
 
