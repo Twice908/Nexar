@@ -21,8 +21,8 @@ This is a **recurring daily/weekly matching model**, not on-demand ride-hailing.
 ## 2. Hard Constraints (do not violate in design)
 
 - Group size is fixed at **4** (1 driver + 3 riders). Do not build variable group sizes for MVP.
-- Only **one drop point** per group inside W — not per-person drop-offs. Compute this point so every rider's walk ≤ 3–5 minutes.
-- Only **one pickup point** per group inside R if riders don't share exact proximity — not per-person pickups, unless riders are on the direct path (see routing note in Section 5).
+- Only **one/two drop point** per group inside W — not per-person drop-offs. Compute this point so every rider's walk ≤ 3–5 minutes.
+- Only **one/two pickup point** per group inside R if riders don't share exact proximity — not per-person pickups, unless riders are on the direct path (see routing note in Section 5).
 - No cash payment flow. No "hire or reward" mechanic. No ride-credit/free-ride wallet in MVP (per legal caution below).
 - No open marketplace — every user must be verified against the employer/workplace before matching.
 - Single R↔W pair only. Do not build multi-cluster expansion logic yet — but do not hardcode values in a way that blocks adding a second cluster pair later (keep R and W as data, not constants).
@@ -42,12 +42,12 @@ Reference: India's Motor Vehicles Act treats a private car earning money for car
 
 ## 4. Roles
 
-### Driver (Car Owner)
+### Driver(we won't call them a driver instead we'll use product based names as Nexar and Nexirian for passanger) (Car Owner)
 - Opts in as driver for a given day/week (recurring toggle, not per-trip booking).
 - Sees: rider names (first name + photo), pickup order, single drop point, per-rider approx. pickup zone, live trip status.
 - Cannot see riders' exact home address — only a pinned approximate zone/landmark.
 
-### Rider (Passenger)
+### Rider(Nexirian) (Passenger)
 - Requests a seat for a recurring commute window.
 - Sees: driver name, photo, car model + plate (last 4 digits only shown pre-trip; full plate shown once matched/confirmed for safety), pickup point/time, drop point, live location during active trip.
 - Cannot see the driver's or other riders' exact home address.

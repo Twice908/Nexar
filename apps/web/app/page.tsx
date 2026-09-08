@@ -6,6 +6,8 @@ import {
   UserButton,
 } from '@clerk/nextjs';
 
+import { OnboardingFlow } from './onboarding-flow';
+
 export default function HomePage() {
   const clerkConfigured = Boolean(
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
@@ -93,6 +95,12 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      {clerkConfigured && (
+        <SignedIn>
+          <OnboardingFlow />
+        </SignedIn>
+      )}
 
       <footer className="trust-note">
         <span className="trust-dot" aria-hidden="true" />

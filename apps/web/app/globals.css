@@ -234,6 +234,191 @@ h1 {
   background: var(--color-success);
 }
 
+.onboarding-card {
+  width: min(100%, 760px);
+  margin: 32px auto 0;
+  padding: clamp(24px, 5vw, 56px);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+}
+
+.onboarding-complete {
+  display: grid;
+  gap: 18px;
+}
+
+.onboarding-complete h2,
+.onboarding-heading-row h2 {
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: clamp(28px, 5vw, 48px);
+  line-height: 1.05;
+}
+
+.onboarding-complete p:not(.eyebrow) {
+  max-width: 520px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.onboarding-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.step-count {
+  color: var(--color-text-muted);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.progress-track {
+  height: 4px;
+  margin: 28px 0 32px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-text-primary);
+  transition: width 180ms ease;
+}
+
+.form-step {
+  display: grid;
+  gap: 20px;
+}
+
+.step-intro {
+  margin: 0 0 4px;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.form-step label,
+fieldset legend {
+  display: grid;
+  gap: 8px;
+  color: var(--color-text-primary);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-step input,
+.form-step select {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: 400;
+}
+
+.form-step input:focus,
+.form-step select:focus {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+.privacy-hint,
+.coordinate-row {
+  margin: -6px 0 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.coordinate-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.location-button {
+  min-height: 44px;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.location-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+fieldset {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.day-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.day-button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-dm-sans), sans-serif;
+  font-weight: 700;
+}
+
+.day-button.selected {
+  border-color: var(--color-text-primary);
+  background: var(--color-text-primary);
+  color: var(--color-canvas);
+}
+
+.form-error {
+  margin: 20px 0 0;
+  color: var(--color-danger, #f18484);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.onboarding-state {
+  width: min(100%, 760px);
+  margin: 32px auto 0;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
 @media (max-width: 560px) {
   .landing-shell {
     padding-inline: 16px;
@@ -280,6 +465,29 @@ h1 {
 
   .hero-actions {
     align-items: stretch;
+  }
+
+  .onboarding-card {
+    margin-top: 24px;
+    border-radius: 18px;
+    padding: 24px 20px;
+  }
+
+  .onboarding-heading-row {
+    display: block;
+  }
+
+  .step-count {
+    display: block;
+    margin-top: 12px;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions .button {
+    flex: 1;
   }
 }
 
