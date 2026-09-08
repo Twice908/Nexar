@@ -1,0 +1,1 @@
+export const designSystemName = 'Nexar Design System';

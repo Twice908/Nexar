@@ -1,0 +1,293 @@
+:root,
+html.dark {
+  color-scheme: dark;
+  --color-canvas: #3a3838;
+  --color-surface: #494848;
+  --color-surface-raised: #5a5858;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #c8c6c6;
+  --color-text-muted: #9d9a9a;
+  --color-border: #6d6a6a;
+  --color-success: #82c99a;
+}
+
+html.light {
+  color-scheme: light;
+  --color-canvas: #f2f0ee;
+  --color-surface: #ffffff;
+  --color-surface-raised: #e8e5e2;
+  --color-text-primary: #2b2b2b;
+  --color-text-secondary: #494848;
+  --color-text-muted: #6b6868;
+  --color-border: #b8b4b1;
+  --color-success: #287449;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+main {
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+}
+
+.landing-shell {
+  display: flex;
+  flex-direction: column;
+  padding: 28px clamp(24px, 7vw, 96px) 32px;
+}
+
+.topbar,
+.auth-controls,
+.brand-lockup,
+.hero-actions,
+.trust-note {
+  display: flex;
+  align-items: center;
+}
+
+.topbar {
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.brand-lockup {
+  min-width: 112px;
+  min-height: 56px;
+}
+
+.brand-logo {
+  width: 112px;
+  height: 56px;
+  filter: invert(1);
+}
+
+.auth-controls {
+  gap: 10px;
+}
+
+.button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0 20px;
+  cursor: pointer;
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.button-primary {
+  background: var(--color-text-primary);
+  color: var(--color-canvas);
+}
+
+.button-primary:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+}
+
+.button-quiet {
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.button-quiet:hover {
+  background: var(--color-surface);
+}
+
+.hero-panel {
+  width: min(100%, 760px);
+  margin: clamp(120px, 20vh, 220px) auto 0;
+  padding: clamp(32px, 6vw, 72px);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 620px;
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: clamp(48px, 8vw, 92px);
+  font-weight: 700;
+  line-height: 0.98;
+}
+
+.hero-copy {
+  max-width: 480px;
+  margin: 28px 0 0;
+  font-family: var(--font-dm-sans), sans-serif;
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.hero-actions {
+  min-height: 60px;
+  margin-top: 40px;
+}
+
+.button-large {
+  min-height: 52px;
+  padding-inline: 26px;
+}
+
+.signed-in-note {
+  margin: 0;
+  color: var(--color-success);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-setup-note {
+  width: 100%;
+}
+
+.auth-setup-note p {
+  max-width: 440px;
+  margin: 14px 0 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.trust-note {
+  gap: 9px;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 72px;
+  color: var(--color-text-muted);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 12px;
+}
+
+/* Keep Clerk's portal centered instead of inheriting a top-offset layout. */
+.cl-modalBackdrop,
+[data-clerk-portal] .cl-modalBackdrop {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+}
+
+.cl-modalContent,
+[data-clerk-portal] .cl-modalContent {
+  margin: auto !important;
+  max-height: calc(100dvh - 40px) !important;
+  overflow-y: auto !important;
+}
+
+[data-clerk-portal] .cl-card {
+  max-width: min(400px, calc(100vw - 40px)) !important;
+}
+
+.trust-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+@media (max-width: 560px) {
+  .landing-shell {
+    padding-inline: 16px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .brand-lockup,
+  .brand-logo {
+    width: 88px;
+    min-width: 88px;
+    height: auto;
+  }
+
+  .auth-controls {
+    gap: 6px;
+  }
+
+  .button {
+    min-height: 40px;
+    padding-inline: 13px;
+    font-size: 12px;
+  }
+
+  .hero-panel {
+    margin-top: 96px;
+    padding: 28px 22px;
+    border-radius: 18px;
+  }
+
+  h1 {
+    font-size: clamp(44px, 14vw, 68px);
+  }
+
+  .hero-copy {
+    font-size: 16px;
+  }
+
+  .button-large {
+    width: 100%;
+  }
+
+  .hero-actions {
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

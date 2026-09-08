@@ -1,0 +1,1 @@
+console.log('Nexar synthetic seed is not implemented yet.');
