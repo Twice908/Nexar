@@ -10,7 +10,16 @@ import {
   rideRequestUpdateSchema,
   type RideRole,
 } from '@nexar/contracts';
-import { clusterPairs, commuteRequests, db, users, vehicles } from '@nexar/db';
+import {
+  clusterPairs,
+  commuteRequests,
+  db,
+  notifications,
+  tripMembers,
+  trips,
+  users,
+  vehicles,
+} from '@nexar/db';
 
 // Local keys are usually entered once in the web app environment file.
 loadEnv({ path: '../../apps/web/.env.local' });
@@ -425,6 +434,284 @@ app.delete('/v1/ride-requests/:id', async (request, reply) => {
       : null,
   });
 });
+
+app.delete('/v1/trips/:tripId/rider', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  const params = request.params as { tripId?: string };
+  if (!currentUser) {
+    return reply.code(404).send({ error: 'User not found' });
+  }
+
+  const membership = await db
+    .select({
+      memberId: tripMembers.id,
+      role: tripMembers.role,
+      status: trips.status,
+    })
+    .from(tripMembers)
+    .innerJoin(trips, eq(trips.id, tripMembers.tripId))
+    .where(
+      and(
+        eq(tripMembers.tripId, params.tripId ?? ''),
+        eq(tripMembers.userId, currentUser.user.id),
+      ),
+    )
+    .limit(1);
+
+  const currentMembership = membership[0];
+  if (!currentMembership) {
+    return reply.code(404).send({ error: 'Trip membership not found' });
+  }
+  if (currentMembership.role !== 'rider') {
+    return reply
+      .code(403)
+      .send({ error: 'Only riders can cancel this trip seat' });
+  }
+  if (
+    currentMembership.status !== 'MATCHED' &&
+    currentMembership.status !== 'CONFIRMED'
+  ) {
+    return reply
+      .code(409)
+      .send({ error: 'This trip can no longer be cancelled' });
+  }
+
+  await db
+    .delete(tripMembers)
+    .where(eq(tripMembers.id, currentMembership.memberId));
+
+  return reply.send({
+    tripId: params.tripId,
+    status: currentMembership.status,
+    rideContinues: true,
+  });
+});
+
+app.get('/v1/notifications', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  if (!currentUser) {
+    return reply.code(404).send({ error: 'User not found' });
+  }
+
+  const items = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, currentUser.user.id))
+    .orderBy(notifications.createdAt);
+
+  return reply.send({ notifications: items });
+});
+
+app.get('/v1/trips/current', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  if (!currentUser) {
+    return reply.code(404).send({ error: 'User not found' });
+  }
+
+  const membership = await db
+    .select({ trip: trips, member: tripMembers })
+    .from(tripMembers)
+    .innerJoin(trips, eq(trips.id, tripMembers.tripId))
+    .where(eq(tripMembers.userId, currentUser.user.id))
+    .orderBy(trips.tripDate)
+    .limit(1);
+
+  return reply.send({
+    trip: membership[0]
+      ? { ...membership[0].trip, member: membership[0].member }
+      : null,
+  });
+});
+
+app.post('/v1/trips/:tripId/confirm', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  const params = request.params as { tripId?: string };
+  if (!currentUser) {
+    return reply.code(404).send({ error: 'User not found' });
+  }
+
+  const result = await db.transaction(async (tx) => {
+    const [membership] = await tx
+      .select({ trip: trips, member: tripMembers })
+      .from(tripMembers)
+      .innerJoin(trips, eq(trips.id, tripMembers.tripId))
+      .where(
+        and(
+          eq(tripMembers.tripId, params.tripId ?? ''),
+          eq(tripMembers.userId, currentUser.user.id),
+        ),
+      );
+
+    if (!membership) {
+      return { code: 404, error: 'Trip membership not found' } as const;
+    }
+    if (membership.trip.status !== 'MATCHED') {
+      return {
+        code: 409,
+        error: 'This trip is not awaiting confirmation',
+      } as const;
+    }
+    if (
+      membership.trip.confirmationDeadline &&
+      membership.trip.confirmationDeadline <= new Date()
+    ) {
+      return {
+        code: 409,
+        error: 'The confirmation window has closed',
+      } as const;
+    }
+
+    await tx
+      .update(tripMembers)
+      .set({ confirmedAt: new Date() })
+      .where(eq(tripMembers.id, membership.member.id));
+
+    const members = await tx
+      .select({ confirmedAt: tripMembers.confirmedAt })
+      .from(tripMembers)
+      .where(eq(tripMembers.tripId, membership.trip.id));
+    const confirmed = members.every((member) => member.confirmedAt !== null);
+
+    if (confirmed) {
+      await tx
+        .update(trips)
+        .set({ status: 'CONFIRMED' })
+        .where(eq(trips.id, membership.trip.id));
+    }
+
+    return {
+      tripId: membership.trip.id,
+      status: confirmed ? 'CONFIRMED' : 'MATCHED',
+      confirmedMembers: members.filter((member) => member.confirmedAt !== null)
+        .length,
+      totalMembers: members.length,
+    } as const;
+  });
+
+  if ('error' in result) {
+    return reply.code(result.code ?? 409).send({ error: result.error });
+  }
+  return reply.send(result);
+});
+
+// Trip start: driver marks "started" or called by scheduler at scheduled pickup time
+app.post('/v1/trips/:tripId/start', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  const params = request.params as { tripId?: string };
+  if (!currentUser) {
+    return reply.code(404).send({ error: 'User not found' });
+  }
+
+  const result = await db.transaction(async (tx) => {
+    const [membership] = await tx
+      .select({ trip: trips, member: tripMembers })
+      .from(tripMembers)
+      .innerJoin(trips, eq(trips.id, tripMembers.tripId))
+      .where(
+        and(
+          eq(tripMembers.tripId, params.tripId ?? ''),
+          eq(tripMembers.userId, currentUser.user.id),
+        ),
+      );
+
+    if (!membership) {
+      return { code: 404, error: 'Trip membership not found' } as const;
+    }
+    if (membership.member.role !== 'driver') {
+      return { code: 403, error: 'Only the driver can start the trip' } as const;
+    }
+    if (membership.trip.status !== 'CONFIRMED') {
+      return { code: 409, error: 'Trip must be CONFIRMED before it can be started' } as const;
+    }
+
+    await tx
+      .update(trips)
+      .set({ status: 'IN_PROGRESS' })
+      .where(eq(trips.id, membership.trip.id));
+
+    return { tripId: membership.trip.id, status: 'IN_PROGRESS' } as const;
+  });
+
+  if ('error' in result) {
+    return reply.code(result.code ?? 409).send({ error: result.error });
+  }
+  return reply.send(result);
+});
+
+// Trip complete: driver marks drop-off done or auto-triggered by geofence
+app.post('/v1/trips/:tripId/complete', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  const params = request.params as { tripId?: string };
+  if (!currentUser) {
+    return reply.code(404).send({ error: 'User not found' });
+  }
+
+  const result = await db.transaction(async (tx) => {
+    const [membership] = await tx
+      .select({ trip: trips, member: tripMembers })
+      .from(tripMembers)
+      .innerJoin(trips, eq(trips.id, tripMembers.tripId))
+      .where(
+        and(
+          eq(tripMembers.tripId, params.tripId ?? ''),
+          eq(tripMembers.userId, currentUser.user.id),
+        ),
+      );
+
+    if (!membership) {
+      return { code: 404, error: 'Trip membership not found' } as const;
+    }
+    if (membership.member.role !== 'driver') {
+      return { code: 403, error: 'Only the driver can complete the trip' } as const;
+    }
+    if (membership.trip.status !== 'IN_PROGRESS') {
+      return { code: 409, error: 'Trip must be IN_PROGRESS before it can be completed' } as const;
+    }
+
+    await tx
+      .update(trips)
+      .set({ status: 'COMPLETED' })
+      .where(eq(trips.id, membership.trip.id));
+
+    return { tripId: membership.trip.id, status: 'COMPLETED' } as const;
+  });
+
+  if ('error' in result) {
+    return reply.code(result.code ?? 409).send({ error: result.error });
+  }
+  return reply.send(result);
+});
+
 
 app.post('/v1/onboarding', async (request, reply) => {
   const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;

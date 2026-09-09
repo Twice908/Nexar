@@ -5,6 +5,7 @@ export const MAX_HOME_DISTANCE_METERS = 5000;
 export type MatchCandidate = {
   userId: string;
   name: string;
+  role: 'driver' | 'passenger';
   residentialClusterId: string;
   workspaceClusterId: string;
   officeBuilding: string;
@@ -26,7 +27,7 @@ export type MatchGroup = {
   entryBucket: string;
 };
 
-function entryBucket(value: string) {
+export function entryBucket(value: string) {
   const match = value.match(/(\d{1,2}):(\d{2})/);
   if (!match) {
     return value;
@@ -37,7 +38,7 @@ function entryBucket(value: string) {
   return `${String(hour).padStart(2, '0')}:${minute < 30 ? '00' : '30'}`;
 }
 
-function distanceMeters(first: MatchCandidate, second: MatchCandidate) {
+export function distanceMeters(first: MatchCandidate, second: MatchCandidate) {
   const earthRadius = 6371000;
   const latitudeDelta =
     ((second.homeLatitude - first.homeLatitude) * Math.PI) / 180;
@@ -56,54 +57,51 @@ function distanceMeters(first: MatchCandidate, second: MatchCandidate) {
 
 export function createMatchGroups(candidates: MatchCandidate[]): MatchGroup[] {
   const groups: MatchGroup[] = [];
-  const remaining = new Set(candidates.map((candidate) => candidate.userId));
+  const remainingRiders = new Set(
+    candidates
+      .filter((candidate) => candidate.role === 'passenger')
+      .map((candidate) => candidate.userId),
+  );
+  const drivers = candidates.filter(
+    (candidate) => candidate.role === 'driver' && candidate.seatsAvailable >= 3,
+  );
 
-  for (const candidate of candidates) {
-    if (!remaining.has(candidate.userId)) {
-      continue;
-    }
+  for (const driver of drivers) {
+    for (const commuteDay of driver.commuteDays) {
+      const bucket = entryBucket(driver.officeEntryWindow);
+      const riders = candidates
+        .filter(
+          (possible) =>
+            remainingRiders.has(possible.userId) &&
+            possible.commuteDays.includes(commuteDay) &&
+            possible.residentialClusterId === driver.residentialClusterId &&
+            possible.workspaceClusterId === driver.workspaceClusterId &&
+            possible.officeBuilding === driver.officeBuilding &&
+            entryBucket(possible.officeEntryWindow) === bucket &&
+            distanceMeters(driver, possible) <= MAX_HOME_DISTANCE_METERS,
+        )
+        .sort(
+          (first, second) =>
+            distanceMeters(driver, first) - distanceMeters(driver, second),
+        )
+        .slice(0, REQUIRED_GROUP_SIZE - 1);
 
-    for (const commuteDay of candidate.commuteDays) {
-      const bucket = entryBucket(candidate.officeEntryWindow);
-      const compatible = candidates.filter(
-        (possible) =>
-          remaining.has(possible.userId) &&
-          possible.commuteDays.includes(commuteDay) &&
-          possible.residentialClusterId === candidate.residentialClusterId &&
-          possible.workspaceClusterId === candidate.workspaceClusterId &&
-          possible.officeBuilding === candidate.officeBuilding &&
-          entryBucket(possible.officeEntryWindow) === bucket &&
-          distanceMeters(candidate, possible) <= MAX_HOME_DISTANCE_METERS,
-      );
-
-      if (compatible.length < REQUIRED_GROUP_SIZE) {
+      if (riders.length < REQUIRED_GROUP_SIZE - 1) {
         continue;
       }
 
-      const driver = compatible.find(
-        (possible) => possible.seatsAvailable >= 3,
-      );
-      if (!driver) {
-        continue;
-      }
-
-      const members = compatible.slice(0, REQUIRED_GROUP_SIZE);
-      if (!members.some((member) => member.userId === driver.userId)) {
-        members[REQUIRED_GROUP_SIZE - 1] = driver;
-      }
-
-      const memberIds = members.map((member) => member.userId);
+      const memberIds = [driver.userId, ...riders.map((rider) => rider.userId)];
       groups.push({
         driverId: driver.userId,
-        riderIds: memberIds.filter((userId) => userId !== driver.userId),
+        riderIds: riders.map((rider) => rider.userId),
         memberIds,
-        residentialClusterId: candidate.residentialClusterId,
-        workspaceClusterId: candidate.workspaceClusterId,
-        officeBuilding: candidate.officeBuilding,
+        residentialClusterId: driver.residentialClusterId,
+        workspaceClusterId: driver.workspaceClusterId,
+        officeBuilding: driver.officeBuilding,
         commuteDay,
         entryBucket: bucket,
       });
-      memberIds.forEach((userId) => remaining.delete(userId));
+      riders.forEach((rider) => remainingRiders.delete(rider.userId));
       break;
     }
   }

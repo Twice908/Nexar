@@ -137,6 +137,9 @@ export const trips = pgTable('trips', {
   dropPointLabel: text('drop_point_label'),
   status: tripStatusEnum('status').notNull().default('MATCHED'),
   costPerHead: numeric('cost_per_head', { precision: 10, scale: 2 }),
+  confirmationDeadline: timestamp('confirmation_deadline', {
+    withTimezone: true,
+  }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -153,4 +156,19 @@ export const tripMembers = pgTable('trip_members', {
   role: tripMemberRoleEnum('role').notNull(),
   pickupOrder: integer('pickup_order'),
   confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+});
+
+export const notifications = pgTable('notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  tripId: uuid('trip_id').references(() => trips.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  readAt: timestamp('read_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });

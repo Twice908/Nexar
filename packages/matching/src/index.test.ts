@@ -5,6 +5,7 @@ import { createMatchGroups, type MatchCandidate } from './index';
 const candidates: MatchCandidate[] = [1, 2, 3, 4].map((number) => ({
   userId: `user-${number}`,
   name: `User ${number}`,
+  role: number === 1 ? 'driver' : 'passenger',
   residentialClusterId: 'residential-a',
   workspaceClusterId: 'workspace-a',
   officeBuilding: 'Nexar Campus',
@@ -30,5 +31,22 @@ describe('createMatchGroups', () => {
         candidates.map((candidate) => ({ ...candidate, seatsAvailable: 0 })),
       ),
     ).toHaveLength(0);
+  });
+
+  it('always puts the driver first and orders riders by proximity', () => {
+    const [group] = createMatchGroups([
+      { ...candidates[3]!, userId: 'far-rider', homeLatitude: 13.01 },
+      { ...candidates[0]!, userId: 'driver', homeLatitude: 12.9716 },
+      { ...candidates[2]!, userId: 'near-rider', homeLatitude: 12.9717 },
+      { ...candidates[1]!, userId: 'middle-rider', homeLatitude: 12.972 },
+    ]);
+
+    expect(group?.driverId).toBe('driver');
+    expect(group?.memberIds).toEqual([
+      'driver',
+      'near-rider',
+      'middle-rider',
+      'far-rider',
+    ]);
   });
 });

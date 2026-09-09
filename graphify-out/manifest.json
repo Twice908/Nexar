@@ -1,14 +1,14 @@
 {
   "apps/api/package.json": {
-    "mtime": 1788939557.0614495,
-    "seen": 1788939611.5584111,
+    "mtime": 1788952610.9405372,
+    "seen": 1788955069.9552808,
     "ast_hash": "fc524a21b6b10427e3f0b8174aa95b20",
     "semantic_hash": ""
   },
   "apps/api/src/server.ts": {
-    "mtime": 1788939590.1103957,
-    "seen": 1788939611.558412,
-    "ast_hash": "a7b6883ef3c8f1a15c8fe89eb1255ecf",
+    "mtime": 1788955683.4096813,
+    "seen": 1788955691.48274,
+    "ast_hash": "aa57ba8b371dae1ead8d150a60996f04",
     "semantic_hash": ""
   },
   "apps/api/tsconfig.json": {
@@ -72,9 +72,9 @@
     "semantic_hash": "a9850cc36d7a677256fc341f90a32821"
   },
   "apps/worker/src/worker.ts": {
-    "mtime": 1788938907.489993,
-    "seen": 1788939380.581718,
-    "ast_hash": "46eb06eb9739092fde1deacba78a4638",
+    "mtime": 1788955683.4220338,
+    "seen": 1788955691.4829261,
+    "ast_hash": "e64ed94961530fc16b4c6c5b6beea746",
     "semantic_hash": ""
   },
   "apps/worker/tsconfig.json": {
@@ -114,14 +114,14 @@
     "semantic_hash": "aee237887ab11bcd3db5698f2d47864d"
   },
   "packages/contracts/package.json": {
-    "mtime": 1788939579.0679364,
-    "seen": 1788939611.558692,
+    "mtime": 1788952610.9502633,
+    "seen": 1788955069.955543,
     "ast_hash": "6d79e27db66dc35eed1486d1fa56e9e3",
     "semantic_hash": ""
   },
   "packages/contracts/src/index.ts": {
-    "mtime": 1788939557.0184944,
-    "seen": 1788939611.5586932,
+    "mtime": 1788952610.9405427,
+    "seen": 1788955069.955544,
     "ast_hash": "3a18afacf4e421dfd5d7008b355650ba",
     "semantic_hash": ""
   },
@@ -150,9 +150,9 @@
     "semantic_hash": "340b04f4717cc4cbd367726560dc1443"
   },
   "packages/db/drizzle/meta/_journal.json": {
-    "mtime": 1788938144.039621,
-    "seen": 1788939380.581857,
-    "ast_hash": "201ab609d97bc088941ad38fa34fa93c",
+    "mtime": 1788955665.9588513,
+    "seen": 1788955691.4830878,
+    "ast_hash": "ec4a4434fbec532d52ebce9b25c2dae9",
     "semantic_hash": ""
   },
   "packages/db/package.json": {
@@ -168,9 +168,9 @@
     "semantic_hash": "dc62611afceecd69299cad79be4bee00"
   },
   "packages/db/src/schema.ts": {
-    "mtime": 1788938907.4899445,
-    "seen": 1788939380.58188,
-    "ast_hash": "95cd0be2ecb326ae4bfb4a668b15f1be",
+    "mtime": 1788955568.902985,
+    "seen": 1788955691.48311,
+    "ast_hash": "feaf1076ab83fd71ef69820e0e9967fa",
     "semantic_hash": ""
   },
   "packages/db/src/seed.ts": {
@@ -192,16 +192,16 @@
     "semantic_hash": "6ee8a7b5c0050be278cda852513d2218"
   },
   "packages/matching/src/index.test.ts": {
-    "mtime": 1788888133.8635712,
-    "seen": 1788934016.061822,
-    "ast_hash": "57197b8adfded4c6e6622d2106c567a1",
-    "semantic_hash": "57197b8adfded4c6e6622d2106c567a1"
+    "mtime": 1788955318.759474,
+    "seen": 1788955350.652844,
+    "ast_hash": "4f0c57d698b5d427b58d921116ad5476",
+    "semantic_hash": ""
   },
   "packages/matching/src/index.ts": {
-    "mtime": 1788888133.8635437,
-    "seen": 1788934016.061823,
-    "ast_hash": "6354ad93cc7f4eb420c2ff5f901e1c8d",
-    "semantic_hash": "6354ad93cc7f4eb420c2ff5f901e1c8d"
+    "mtime": 1788955318.7509608,
+    "seen": 1788955350.6528451,
+    "ast_hash": "ad44bbcbfd869e46b0d9eb2c7ca92d73",
+    "semantic_hash": ""
   },
   "packages/matching/tsconfig.json": {
     "mtime": 1788882206.5987437,
@@ -294,8 +294,8 @@
     "semantic_hash": ""
   },
   "apps/web/app/home/page.tsx": {
-    "mtime": 1788939362.4966063,
-    "seen": 1788939380.581646,
+    "mtime": 1788952610.9404821,
+    "seen": 1788955069.955319,
     "ast_hash": "b29803d79587441b14421608abc18a24",
     "semantic_hash": ""
   },
@@ -324,9 +324,9 @@
     "semantic_hash": ""
   },
   "apps/web/app/trips/page.tsx": {
-    "mtime": 1788935476.6910615,
-    "seen": 1788939380.581673,
-    "ast_hash": "b98ff1d9b6200a94fcdffc0aa201957b",
+    "mtime": 1788955683.432469,
+    "seen": 1788955691.4828732,
+    "ast_hash": "a682707b2ec0fa11d2f5b647c00f13f1",
     "semantic_hash": ""
   },
   "packages/db/drizzle/meta/0002_snapshot.json": {
@@ -699,6 +699,12 @@
     "mtime": 1788879701.883439,
     "seen": 1788939380.58208,
     "ast_hash": "b762ec591390c0e79926546906623938",
+    "semantic_hash": ""
+  },
+  "packages/db/drizzle/meta/0004_snapshot.json": {
+    "mtime": 1788955665.9587667,
+    "seen": 1788955691.483087,
+    "ast_hash": "e481c644b7ecc0b305c827ae1c29a5a7",
     "semantic_hash": ""
   }
 }

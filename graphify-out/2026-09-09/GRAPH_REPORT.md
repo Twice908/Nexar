@@ -1,23 +1,23 @@
 # Graph Report - Nexar  (2026-09-09)
 
 ## Corpus Check
-- 76 files · ~49,897 words
+- 76 files · ~50,327 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 565 nodes · 601 edges · 53 communities (40 shown, 11 thin omitted)
+- 576 nodes · 621 edges · 51 communities (38 shown, 11 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `80cdf594`
+- Built from commit: `7bd892c7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - compilerOptions
 - db/package.json
-- worker.ts
+- seed.ts
 - web/package.json
 - api/package.json
 - scripts
@@ -28,13 +28,13 @@
 - compilerOptions
 - config/package.json
 - home/page.tsx
-- OnboardingFlow
-- devDependencies
+- server.ts
+- RideCreator
 - worker/package.json
 - Nexar Design System
 - config/tsconfig.json
 - ui/tsconfig.json
-- contracts/src/index.ts
+- matching/src/index.ts
 - middleware.ts
 - next-env.d.ts
 - config/src/index.ts
@@ -43,13 +43,11 @@
 - ui/src/index.ts
 - What You Must Do When Invoked
 - Employee Carpool MVP — Build Specification
-- server.ts
+- worker.ts
 - graphify reference: extra exports and benchmark
 - storage/package.json
 - ui/package.json
-- dependencies
-- devDependencies
-- scripts
+- schema.ts
 - api/tsconfig.json
 - worker/tsconfig.json
 - Nexar
@@ -94,7 +92,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (53 total, 11 thin omitted)
+## Communities (51 total, 11 thin omitted)
 
 ### Community 0 - "compilerOptions"
 Cohesion: 0.17
@@ -104,17 +102,17 @@ Nodes (11): compilerOptions, allowJs, incremental, jsx, lib, noEmit, plugins, ex
 Cohesion: 0.07
 Nodes (26): dependencies, dotenv, drizzle-orm, postgres, devDependencies, drizzle-kit, tsx, @types/node (+18 more)
 
-### Community 2 - "worker.ts"
-Cohesion: 0.08
-Nodes (31): dateValue(), runNightlyMatching(), weekdayName(), connection, db, clusterPairs, clusters, commuteRequests (+23 more)
+### Community 2 - "seed.ts"
+Cohesion: 0.15
+Nodes (10): connection, db, clusters, commuteRequests, clusterIds, corridors, genders, names (+2 more)
 
 ### Community 3 - "web/package.json"
 Cohesion: 0.05
-Nodes (38): dmSans, metadata, poppins, locationIcon, LocationMapProps, PUNE_CENTER, dayOptions, initialForm (+30 more)
+Nodes (38): dmSans, metadata, poppins, locationIcon, LocationMapProps, PUNE_CENTER, dependencies, @clerk/nextjs (+30 more)
 
 ### Community 4 - "api/package.json"
-Cohesion: 0.15
-Nodes (12): dotenv, drizzle-orm, @nexar/db, tsup, tsx, @types/node, typescript, vitest (+4 more)
+Cohesion: 0.05
+Nodes (36): dependencies, @clerk/backend, dotenv, drizzle-orm, fastify, @fastify/cors, @nexar/contracts, @nexar/db (+28 more)
 
 ### Community 5 - "scripts"
 Cohesion: 0.08
@@ -129,8 +127,8 @@ Cohesion: 0.12
 Nodes (15): dependsOn, outputs, cache, persistent, dependsOn, $schema, tasks, build (+7 more)
 
 ### Community 8 - "contracts/package.json"
-Cohesion: 0.13
-Nodes (14): dependencies, zod, devDependencies, typescript, vitest, typescript, vitest, zod (+6 more)
+Cohesion: 0.11
+Nodes (17): dependencies, zod, devDependencies, typescript, vitest, exports, typescript, vitest (+9 more)
 
 ### Community 9 - "matching/package.json"
 Cohesion: 0.13
@@ -145,16 +143,12 @@ Cohesion: 0.17
 Nodes (11): dependencies, zod, devDependencies, typescript, typescript, zod, name, private (+3 more)
 
 ### Community 12 - "home/page.tsx"
+Cohesion: 0.09
+Nodes (30): AppShell(), navItems, dayOptions, HomeDashboard(), RideMode, RideRequest, dayOptions, initialForm (+22 more)
+
+### Community 13 - "server.ts"
 Cohesion: 0.12
-Nodes (18): AppShell(), navItems, dayOptions, HomeDashboard(), RideCreator(), RideMode, RideRequest, apiBaseUrl (+10 more)
-
-### Community 13 - "OnboardingFlow"
-Cohesion: 0.36
-Nodes (6): OnboardingFlow(), nextStep(), submit(), update(), useCurrentLocation(), validateCurrentStep()
-
-### Community 14 - "devDependencies"
-Cohesion: 0.29
-Nodes (7): devDependencies, @types/leaflet, @types/node, @types/react, @types/react-dom, typescript, vitest
+Nodes (18): app, AuthenticatedRequest, ClerkIdentity, createRideRequest(), getCurrentUser(), onboardingSchema, port, profileRolePreference() (+10 more)
 
 ### Community 15 - "worker/package.json"
 Cohesion: 0.06
@@ -172,6 +166,10 @@ Nodes (5): compilerOptions, outDir, extends, include, ../../tsconfig.base.json
 Cohesion: 0.33
 Nodes (5): compilerOptions, outDir, extends, include, ../../tsconfig.base.json
 
+### Community 19 - "matching/src/index.ts"
+Cohesion: 0.25
+Nodes (9): createMatchGroups(), distanceMeters(), entryBucket(), MatchCandidate, MatchGroup, MAX_HOME_DISTANCE_METERS, MAX_OFFICE_WALK_METERS, REQUIRED_GROUP_SIZE (+1 more)
+
 ### Community 28 - "What You Must Do When Invoked"
 Cohesion: 0.08
 Nodes (24): For /graphify add and --watch, For /graphify query, For the commit hook and native CLAUDE.md integration, For --update and --cluster-only, /graphify, Honesty Rules, Interpreter guard for subcommands, Part A - Structural extraction for code files (+16 more)
@@ -180,9 +178,9 @@ Nodes (24): For /graphify add and --watch, For /graphify query, For the commit h
 Cohesion: 0.11
 Nodes (17): 10. Data Model (minimum viable tables), 11. Explicitly Out of Scope for MVP, 12. Suggested Build Order, 1. Core Concept, 2. Hard Constraints (do not violate in design), 3. Legal Guardrails to Bake Into the Product (non-negotiable for MVP), 4. Roles, 5. Minimal Interface — Field List (keep both screens deliberately sparse) (+9 more)
 
-### Community 30 - "server.ts"
-Cohesion: 0.15
-Nodes (14): app, AuthenticatedRequest, ClerkIdentity, createRideRequest(), getCurrentUser(), onboardingSchema, port, profileRolePreference() (+6 more)
+### Community 30 - "worker.ts"
+Cohesion: 0.31
+Nodes (7): createRedisConnection(), dateValue(), runNightlyMatching(), scheduleNightlyMatching(), weekdayName(), users, vehicles
 
 ### Community 31 - "graphify reference: extra exports and benchmark"
 Cohesion: 0.22
@@ -196,17 +194,9 @@ Nodes (8): devDependencies, typescript, typescript, name, private, scripts, type
 Cohesion: 0.22
 Nodes (8): devDependencies, typescript, typescript, name, private, scripts, typecheck, type
 
-### Community 34 - "dependencies"
+### Community 34 - "schema.ts"
 Cohesion: 0.25
-Nodes (8): dependencies, @clerk/backend, dotenv, drizzle-orm, fastify, @fastify/cors, @nexar/db, zod
-
-### Community 35 - "devDependencies"
-Cohesion: 0.33
-Nodes (6): devDependencies, tsup, tsx, @types/node, typescript, vitest
-
-### Community 36 - "scripts"
-Cohesion: 0.33
-Nodes (6): scripts, build, dev, lint, test, typecheck
+Nodes (7): clusterPairs, genderEnum, rolePreferenceEnum, tripMemberRoleEnum, tripMembers, trips, tripStatusEnum
 
 ### Community 37 - "api/tsconfig.json"
 Cohesion: 0.33
@@ -257,24 +247,24 @@ Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
 ## Knowledge Gaps
-- **366 isolated node(s):** `name`, `private`, `dev`, `build`, `lint` (+361 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 409 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **370 isolated node(s):** `name`, `private`, `dev`, `build`, `lint` (+365 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 413 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `postgres` connect `worker.ts` to `db/package.json`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `@clerk/nextjs` connect `web/package.json` to `home/page.tsx`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **Why does `react` connect `web/package.json` to `home/page.tsx`?**
-  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+- **Why does `postgres` connect `seed.ts` to `db/package.json`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `bullmq` connect `worker/package.json` to `worker.ts`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `ioredis` connect `worker/package.json` to `worker.ts`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `dev` to the rest of the system?**
-  _366 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _370 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `db/package.json` be split into smaller, more focused modules?**
   _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
-- **Should `worker.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07692307692307693 - nodes in this community are weakly interconnected._
 - **Should `web/package.json` be split into smaller, more focused modules?**
-  _Cohesion score 0.047872340425531915 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.045454545454545456 - nodes in this community are weakly interconnected._
+- **Should `api/package.json` be split into smaller, more focused modules?**
+  _Cohesion score 0.05405405405405406 - nodes in this community are weakly interconnected._
