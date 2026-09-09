@@ -33,7 +33,10 @@ export async function runNightlyMatching(tripDate = nextWeekday()) {
     .innerJoin(vehicles, eq(vehicles.userId, users.id))
     .innerJoin(commuteRequests, eq(commuteRequests.userId, users.id))
     .where(
-      and(eq(users.profileComplete, true), eq(commuteRequests.active, true)),
+      and(
+        eq(users.profileComplete, true),
+        eq(commuteRequests.active, true),
+      ),
     );
 
   const dayName = weekdayName(tripDate);

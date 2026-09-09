@@ -1,10 +1,20 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
+import dynamic from 'next/dynamic';
 import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+import type { VerificationStatus } from './profile';
+
+const LocationMap = dynamic(
+  () => import('./location-map').then((module) => module.LocationMap),
+  { ssr: false },
+);
 
 type OnboardingForm = {
   name: string;
+  profileImageUrl: string | null;
   gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say';
   homeZoneLabel: string;
   homeZoneLatitude: number;
@@ -15,10 +25,12 @@ type OnboardingForm = {
   vehicleModel: string;
   vehiclePlateNumber: string;
   vehicleSeatsAvailable: number;
+  rolePreference: 'driver' | 'passenger' | 'both';
 };
 
 const initialForm: OnboardingForm = {
   name: '',
+  profileImageUrl: null,
   gender: 'prefer_not_to_say',
   homeZoneLabel: '',
   homeZoneLatitude: 0,
@@ -29,6 +41,7 @@ const initialForm: OnboardingForm = {
   vehicleModel: '',
   vehiclePlateNumber: '',
   vehicleSeatsAvailable: 3,
+  rolePreference: 'both',
 };
 
 const dayOptions: [string, string][] = [
@@ -39,14 +52,24 @@ const dayOptions: [string, string][] = [
   ['friday', 'F'],
 ];
 
-export function OnboardingFlow() {
+export function OnboardingFlow({
+  stayOnForm = false,
+  onSaved,
+}: {
+  stayOnForm?: boolean;
+  onSaved?: () => void;
+} = {}) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [verification, setVerification] = useState<VerificationStatus | null>(
+    null,
+  );
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -63,6 +86,17 @@ export function OnboardingFlow() {
         );
         if (response.ok) {
           const result = await response.json();
+          setVerification(result.verification ?? null);
+          if (result.profile) {
+            setForm((current) => ({
+              ...current,
+              ...result.profile,
+            }));
+          }
+          if (result.complete && !stayOnForm) {
+            router.replace('/home');
+            return;
+          }
           setComplete(Boolean(result.complete));
         }
       } catch {
@@ -75,7 +109,7 @@ export function OnboardingFlow() {
     }
 
     void loadProfile();
-  }, [getToken, isLoaded, isSignedIn]);
+  }, [getToken, isLoaded, isSignedIn, router, stayOnForm]);
 
   function update<K extends keyof OnboardingForm>(
     key: K,
@@ -104,8 +138,8 @@ export function OnboardingFlow() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        update('homeZoneLatitude', Number(coords.latitude.toFixed(3)));
-        update('homeZoneLongitude', Number(coords.longitude.toFixed(3)));
+        update('homeZoneLatitude', Number(coords.latitude.toFixed(6)));
+        update('homeZoneLongitude', Number(coords.longitude.toFixed(6)));
         setLocating(false);
       },
       () => {
@@ -191,6 +225,11 @@ export function OnboardingFlow() {
         );
       }
       setComplete(true);
+      if (onSaved) {
+        onSaved();
+      } else if (!stayOnForm) {
+        router.replace('/home');
+      }
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
@@ -206,6 +245,10 @@ export function OnboardingFlow() {
     return (
       <div className="onboarding-state">Loading your commute workspace...</div>
     );
+  }
+
+  if (complete && stayOnForm) {
+    return null;
   }
 
   if (complete) {
@@ -277,6 +320,22 @@ export function OnboardingFlow() {
                 <option value="prefer_not_to_say">Prefer not to say</option>
               </select>
             </label>
+            <label>
+              Ride preference
+              <select
+                value={form.rolePreference}
+                onChange={(event) =>
+                  update(
+                    'rolePreference',
+                    event.target.value as OnboardingForm['rolePreference'],
+                  )
+                }
+              >
+                <option value="both">Both: offer and request rides</option>
+                <option value="driver">Driver: offer rides</option>
+                <option value="passenger">Passenger: request rides</option>
+              </select>
+            </label>
             <p className="privacy-hint">
               Only your first name and profile photo are shown to a matched
               group.
@@ -291,15 +350,23 @@ export function OnboardingFlow() {
               drop point.
             </p>
             <label>
-              Home zone or landmark
+              Residential address or landmark
               <input
                 value={form.homeZoneLabel}
                 onChange={(event) =>
                   update('homeZoneLabel', event.target.value)
                 }
-                placeholder="Residential cluster, gate, or landmark"
+                placeholder="Apartment, residential gate, or landmark"
               />
             </label>
+            <LocationMap
+              latitude={form.homeZoneLatitude}
+              longitude={form.homeZoneLongitude}
+              onChange={(latitude, longitude) => {
+                update('homeZoneLatitude', latitude);
+                update('homeZoneLongitude', longitude);
+              }}
+            />
             <button
               className="location-button"
               type="button"
@@ -345,8 +412,9 @@ export function OnboardingFlow() {
         {step === 3 && (
           <div className="form-step">
             <p className="step-intro">
-              Nexar is genuine cost-sharing, not a taxi service. Every member
-              contributes a car.
+              Nexar is genuine cost-sharing, not a taxi service. Vehicle
+              details are required for every pilot profile while we build the
+              driver flow.
             </p>
             <label>
               Car model

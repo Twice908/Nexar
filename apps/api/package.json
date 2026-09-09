@@ -9,6 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@nexar/contracts": "workspace:*",
     "@nexar/db": "workspace:*",
     "@clerk/backend": "^2.17.0",
     "@fastify/cors": "^11.1.0",

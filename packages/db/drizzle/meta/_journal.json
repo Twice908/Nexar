@@ -15,6 +15,20 @@
       "when": 1788887558789,
       "tag": "0001_mature_hellcat",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788937095775,
+      "tag": "0002_magenta_blindfold",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788938144039,
+      "tag": "0003_sweet_exodus",
+      "breakpoints": true
     }
   ]
 }

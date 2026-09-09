@@ -1,0 +1,55 @@
+/Users/prajwalsinghrajput/Code/Nexar/.claude/CLAUDE.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/SKILL.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/add-watch.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/exports.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/extraction-spec.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/github-and-merge.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/hooks.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/query.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/transcribe.md
+/Users/prajwalsinghrajput/Code/Nexar/.claude/skills/graphify/references/update.md
+/Users/prajwalsinghrajput/Code/Nexar/CLAUDE.md
+/Users/prajwalsinghrajput/Code/Nexar/README.md
+/Users/prajwalsinghrajput/Code/Nexar/docker-compose.yml
+/Users/prajwalsinghrajput/Code/Nexar/docs/Design.md
+/Users/prajwalsinghrajput/Code/Nexar/docs/claude.md
+/Users/prajwalsinghrajput/Code/Nexar/pnpm-workspace.yaml
+/Users/prajwalsinghrajput/Code/Nexar/apps/web/public/nexar-logo-exp.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Acc Icon black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Acc Icon white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Chats Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Chats white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Home Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Home User black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Home User white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Home white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Need help Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Need help white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Nex points black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Nex points white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Office Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Office white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Plus icon Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Plus icon white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Rides black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Rides white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Settings Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Settings white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Theme Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/Theme white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/ham-cross black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/ham-cross white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/ham-menu icon black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/ham-menu icon white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/hotspot Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/hotspot white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/legal Icon Black.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Icons/legal Icon white.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/Ref Designs/Details.png
+/Users/prajwalsinghrajput/Code/Nexar/assets/Ref Designs/FAQ.png
+/Users/prajwalsinghrajput/Code/Nexar/assets/Ref Designs/Legal.png
+/Users/prajwalsinghrajput/Code/Nexar/assets/Ref Designs/NEXAR ROLE.png
+/Users/prajwalsinghrajput/Code/Nexar/assets/logo/Nexar_logo_adj.png
+/Users/prajwalsinghrajput/Code/Nexar/assets/logo/Nexar_logo_adj.svg
+/Users/prajwalsinghrajput/Code/Nexar/assets/logo/Nexar_logo_exp.png
+/Users/prajwalsinghrajput/Code/Nexar/assets/logo/Nexar_logo_exp.svg

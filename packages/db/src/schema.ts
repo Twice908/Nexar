@@ -17,6 +17,8 @@ export const genderEnum = pgEnum('gender', [
   'prefer_not_to_say',
 ]);
 export const rolePreferenceEnum = pgEnum('role_preference', [
+  'driver',
+  'passenger',
   'car_owner',
   'both',
 ]);
@@ -39,7 +41,9 @@ export const users = pgTable('users', {
   officeEntryWindow: text('office_entry_window').notNull(),
   rolePreference: rolePreferenceEnum('role_preference')
     .notNull()
-    .default('car_owner'),
+    .default('both'),
+  profileImageUrl: text('profile_image_url'),
+  clerkVerifiedAt: timestamp('clerk_verified_at', { withTimezone: true }),
   profileComplete: boolean('profile_complete').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()

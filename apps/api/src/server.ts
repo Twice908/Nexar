@@ -1,10 +1,15 @@
-import { verifyToken } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 import cors from '@fastify/cors';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { config as loadEnv } from 'dotenv';
-import Fastify, { type FastifyRequest } from 'fastify';
+import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import { z } from 'zod';
 
+import {
+  rideRequestSchema,
+  rideRequestUpdateSchema,
+  type RideRole,
+} from '@nexar/contracts';
 import { clusterPairs, commuteRequests, db, users, vehicles } from '@nexar/db';
 
 // Local keys are usually entered once in the web app environment file.
@@ -28,11 +33,25 @@ const onboardingSchema = z.object({
   vehicleModel: z.string().trim().min(2).max(80),
   vehiclePlateNumber: z.string().trim().min(4).max(20),
   vehicleSeatsAvailable: z.number().int().min(3).max(8),
+  rolePreference: z.enum(['driver', 'passenger', 'both']).default('both'),
 });
 
-type AuthenticatedRequest = FastifyRequest & { clerkUserId?: string | null };
+type ClerkIdentity = {
+  userId: string;
+  imageUrl: string | null;
+  email: string | null;
+  phone: string | null;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  workEmailVerified: boolean;
+  isVerified: boolean;
+};
 
-async function getClerkUserId(request: FastifyRequest) {
+type AuthenticatedRequest = FastifyRequest & {
+  clerkIdentity?: ClerkIdentity | null;
+};
+
+async function getClerkIdentity(request: FastifyRequest) {
   const authorization = request.headers.authorization;
   const token = authorization?.startsWith('Bearer ')
     ? authorization.slice('Bearer '.length)
@@ -45,14 +64,157 @@ async function getClerkUserId(request: FastifyRequest) {
 
   try {
     const payload = await verifyToken(token, { secretKey });
-    return typeof payload.sub === 'string' ? payload.sub : null;
+    if (typeof payload.sub !== 'string') {
+      return null;
+    }
+
+    const clerkClient = createClerkClient({ secretKey });
+    const clerkUser = await clerkClient.users.getUser(payload.sub);
+    const email = clerkUser.primaryEmailAddress?.emailAddress ?? null;
+    const phone = clerkUser.primaryPhoneNumber?.phoneNumber ?? null;
+    const emailVerified =
+      clerkUser.primaryEmailAddress?.verification?.status === 'verified';
+    const phoneVerified =
+      clerkUser.primaryPhoneNumber?.verification?.status === 'verified';
+    const workplaceDomain = (process.env.WORKPLACE_EMAIL_DOMAIN ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '');
+    const workEmailVerified =
+      emailVerified &&
+      workplaceDomain.length > 0 &&
+      email?.toLowerCase().endsWith(`@${workplaceDomain}`) === true;
+
+    return {
+      userId: payload.sub,
+      imageUrl: clerkUser.imageUrl ?? null,
+      email,
+      phone,
+      emailVerified,
+      phoneVerified,
+      workEmailVerified,
+      isVerified: emailVerified && phoneVerified && workEmailVerified,
+    };
   } catch {
     return null;
   }
 }
 
+function verificationResponse(identity: ClerkIdentity | null) {
+  return {
+    email: identity?.email ?? null,
+    phone: identity?.phone ?? null,
+    emailVerified: identity?.emailVerified ?? false,
+    phoneVerified: identity?.phoneVerified ?? false,
+    workEmailVerified: identity?.workEmailVerified ?? false,
+    isVerified: identity?.isVerified ?? false,
+  };
+}
+
+function profileRolePreference(role: string) {
+  return role === 'car_owner' ? 'driver' : role;
+}
+
+async function getCurrentUser(clerkUserId: string) {
+  const result = await db
+    .select({ user: users, commuteRequest: commuteRequests })
+    .from(users)
+    .leftJoin(commuteRequests, eq(commuteRequests.userId, users.id))
+    .where(eq(users.clerkUserId, clerkUserId));
+
+  return result[0] ?? null;
+}
+
+function rideRequestResponse(
+  user: typeof users.$inferSelect,
+  request: typeof commuteRequests.$inferSelect,
+) {
+  const role = profileRolePreference(user.rolePreference);
+  return {
+    id: request.id,
+    role: role === 'passenger' ? 'passenger' : 'driver',
+    commuteDays: request.commuteDays.split(',').filter(Boolean),
+    active: request.active,
+    createdAt: request.createdAt,
+    updatedAt: request.updatedAt,
+  };
+}
+
+async function saveRideRequest(
+  clerkUserId: string,
+  role: RideRole,
+  commuteDays: string[],
+) {
+  const currentUser = await getCurrentUser(clerkUserId);
+  if (!currentUser) {
+    return {
+      error: 'Complete your commute profile before creating a request',
+      code: 409,
+    } as const;
+  }
+
+  const clusterPair = await db
+    .select({
+      residentialClusterId: clusterPairs.residentialClusterId,
+      workspaceClusterId: clusterPairs.workspaceClusterId,
+    })
+    .from(clusterPairs)
+    .where(eq(clusterPairs.active, true))
+    .limit(1);
+
+  if (!clusterPair[0] && !currentUser.commuteRequest) {
+    return {
+      error: 'No active commute cluster is configured',
+      code: 503,
+    } as const;
+  }
+
+  const saved = await db.transaction(async (tx) => {
+    await tx
+      .update(users)
+      .set({ rolePreference: role, updatedAt: new Date() })
+      .where(eq(users.id, currentUser.user.id));
+
+    const [request] = currentUser.commuteRequest
+      ? await tx
+          .update(commuteRequests)
+          .set({
+            ...(clusterPair[0]
+              ? {
+                  residentialClusterId: clusterPair[0].residentialClusterId,
+                  workspaceClusterId: clusterPair[0].workspaceClusterId,
+                }
+              : {}),
+            commuteDays: commuteDays.join(','),
+            active: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(commuteRequests.id, currentUser.commuteRequest.id))
+          .returning()
+      : await tx
+          .insert(commuteRequests)
+          .values({
+            userId: currentUser.user.id,
+            residentialClusterId: clusterPair[0]!.residentialClusterId,
+            workspaceClusterId: clusterPair[0]!.workspaceClusterId,
+            commuteDays: commuteDays.join(','),
+            active: true,
+          })
+          .returning();
+
+    if (!request) {
+      throw new Error('Unable to save ride request');
+    }
+    return { user: { ...currentUser.user, rolePreference: role }, request };
+  });
+
+  return {
+    ...rideRequestResponse(saved.user, saved.request),
+  };
+}
+
 app.register(cors, {
-  origin: process.env.APP_BASE_URL ?? 'http://localhost:3000',
+  origin: true,
 });
 
 app.addHook('preHandler', async (request) => {
@@ -60,14 +222,15 @@ app.addHook('preHandler', async (request) => {
     return;
   }
 
-  (request as AuthenticatedRequest).clerkUserId = await getClerkUserId(request);
+  (request as AuthenticatedRequest).clerkIdentity =
+    await getClerkIdentity(request);
 });
 
 app.get('/health', async () => ({ status: 'ok', service: 'api' }));
 
 app.get('/v1/onboarding', async (request, reply) => {
-  const clerkUserId = (request as AuthenticatedRequest).clerkUserId;
-  if (!clerkUserId) {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
     return reply.code(401).send({ error: 'Authentication required' });
   }
 
@@ -76,24 +239,198 @@ app.get('/v1/onboarding', async (request, reply) => {
     .from(users)
     .leftJoin(vehicles, eq(vehicles.userId, users.id))
     .leftJoin(commuteRequests, eq(commuteRequests.userId, users.id))
-    .where(eq(users.clerkUserId, clerkUserId));
+    .where(eq(users.clerkUserId, clerkIdentity.userId));
 
   if (!result[0]) {
-    return reply.send({ complete: false, profile: null });
+    return reply.send({
+      complete: false,
+      profile: null,
+      verification: verificationResponse(clerkIdentity),
+    });
+  }
+
+  const { user, vehicle, commuteRequest } = result[0];
+
+  return reply.send({
+    complete: user.profileComplete,
+    verification: verificationResponse(clerkIdentity),
+    profile: user.profileComplete
+      ? {
+          name: user.name,
+          profileImageUrl: user.profileImageUrl ?? clerkIdentity.imageUrl,
+          gender: user.gender,
+          rolePreference: profileRolePreference(user.rolePreference),
+          homeZoneLabel: user.homeZoneLabel,
+          homeZoneLatitude: Number(user.homeZoneLatitude),
+          homeZoneLongitude: Number(user.homeZoneLongitude),
+          officeBuilding: user.officeBuilding,
+          officeEntryWindow: user.officeEntryWindow,
+          commuteDays: commuteRequest?.commuteDays
+            ? commuteRequest.commuteDays.split(',').filter(Boolean)
+            : [],
+          vehicleModel: vehicle?.model ?? '',
+          vehiclePlateNumber: vehicle?.plateNumber ?? '',
+          vehicleSeatsAvailable: vehicle?.seatsAvailable ?? 3,
+        }
+      : null,
+  });
+});
+
+app.get('/v1/ride-requests', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  return reply.send({
+    requests: currentUser?.commuteRequest
+      ? [rideRequestResponse(currentUser.user, currentUser.commuteRequest)]
+      : [],
+  });
+});
+
+async function createRideRequest(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  role: RideRole,
+) {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const parsed = rideRequestSchema.safeParse(request.body);
+  if (!parsed.success) {
+    return reply.code(400).send({
+      error: 'Invalid recurring ride request',
+      details: parsed.error.flatten(),
+    });
+  }
+
+  const saved = await saveRideRequest(
+    clerkIdentity.userId,
+    role,
+    parsed.data.commuteDays,
+  );
+  if ('error' in saved) {
+    return reply.code(saved.code ?? 400).send({ error: saved.error });
+  }
+
+  return reply.code(201).send({ request: saved });
+}
+
+app.post('/v1/ride-requests/offer', async (request, reply) =>
+  createRideRequest(request, reply, 'driver'),
+);
+
+app.post('/v1/ride-requests/request', async (request, reply) =>
+  createRideRequest(request, reply, 'passenger'),
+);
+
+app.patch('/v1/ride-requests/:id', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  const params = request.params as { id?: string };
+  if (
+    !currentUser?.commuteRequest ||
+    currentUser.commuteRequest.id !== params.id
+  ) {
+    return reply.code(404).send({ error: 'Ride request not found' });
+  }
+
+  const parsed = rideRequestUpdateSchema.safeParse(request.body);
+  if (!parsed.success) {
+    return reply.code(400).send({
+      error: 'Invalid recurring ride request',
+      details: parsed.error.flatten(),
+    });
+  }
+
+  const [updated] = await db.transaction(async (tx) => {
+    if (parsed.data.role) {
+      await tx
+        .update(users)
+        .set({ rolePreference: parsed.data.role, updatedAt: new Date() })
+        .where(eq(users.id, currentUser.user.id));
+    }
+
+    return tx
+      .update(commuteRequests)
+      .set({
+        ...(parsed.data.commuteDays
+          ? { commuteDays: parsed.data.commuteDays.join(',') }
+          : {}),
+        ...(parsed.data.active === undefined
+          ? {}
+          : { active: parsed.data.active }),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(commuteRequests.id, currentUser.commuteRequest!.id),
+          eq(commuteRequests.userId, currentUser.user.id),
+        ),
+      )
+      .returning();
+  });
+
+  if (!updated) {
+    return reply.code(404).send({ error: 'Ride request not found' });
   }
 
   return reply.send({
-    complete: result[0].user.profileComplete,
-    profile: result[0],
+    request: rideRequestResponse(
+      parsed.data.role
+        ? { ...currentUser.user, rolePreference: parsed.data.role }
+        : currentUser.user,
+      updated,
+    ),
+  });
+});
+
+app.delete('/v1/ride-requests/:id', async (request, reply) => {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
+    return reply.code(401).send({ error: 'Authentication required' });
+  }
+
+  const currentUser = await getCurrentUser(clerkIdentity.userId);
+  const params = request.params as { id?: string };
+  if (
+    !currentUser?.commuteRequest ||
+    currentUser.commuteRequest.id !== params.id
+  ) {
+    return reply.code(404).send({ error: 'Ride request not found' });
+  }
+
+  const [cancelled] = await db
+    .update(commuteRequests)
+    .set({ active: false, updatedAt: new Date() })
+    .where(
+      and(
+        eq(commuteRequests.id, currentUser.commuteRequest.id),
+        eq(commuteRequests.userId, currentUser.user.id),
+      ),
+    )
+    .returning();
+
+  return reply.send({
+    request: cancelled
+      ? rideRequestResponse(currentUser.user, cancelled)
+      : null,
   });
 });
 
 app.post('/v1/onboarding', async (request, reply) => {
-  const clerkUserId = (request as AuthenticatedRequest).clerkUserId;
-  if (!clerkUserId) {
+  const clerkIdentity = (request as AuthenticatedRequest).clerkIdentity;
+  if (!clerkIdentity) {
     return reply.code(401).send({ error: 'Authentication required' });
   }
-
   const parsed = onboardingSchema.safeParse(request.body);
   if (!parsed.success) {
     return reply.code(400).send({
@@ -124,17 +461,19 @@ app.post('/v1/onboarding', async (request, reply) => {
     const existingUser = await tx
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.clerkUserId, clerkUserId));
+      .where(eq(users.clerkUserId, clerkIdentity.userId));
     const userValues = {
-      clerkUserId,
+      clerkUserId: clerkIdentity.userId,
       name: data.name,
+      profileImageUrl: clerkIdentity.imageUrl,
       gender: data.gender,
       homeZoneLabel: data.homeZoneLabel,
       homeZoneLatitude: data.homeZoneLatitude.toFixed(6),
       homeZoneLongitude: data.homeZoneLongitude.toFixed(6),
       officeBuilding: data.officeBuilding,
       officeEntryWindow: data.officeEntryWindow,
-      rolePreference: 'car_owner' as const,
+      rolePreference: data.rolePreference,
+      clerkVerifiedAt: new Date(),
       profileComplete: true,
       updatedAt: new Date(),
     };
@@ -189,7 +528,11 @@ app.post('/v1/onboarding', async (request, reply) => {
     return user;
   });
 
-  return reply.code(201).send({ complete: true, profile: saved });
+  return reply.code(201).send({
+    complete: true,
+    profile: saved,
+    verification: verificationResponse(clerkIdentity),
+  });
 });
 
 const port = Number(process.env.PORT ?? 4000);
